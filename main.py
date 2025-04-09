@@ -115,79 +115,105 @@ class RPNCalculator:
         Retorna:
             Resultado da avaliação dos tokens
         """
+        # Pilha para armazenar os operandos durante a avaliação
         stack = []
         
+        # Índice para percorrer a lista de tokens
         i = 0
         while i < len(tokens):
             token = tokens[i]
             
             if token == '(':
-                # Encontra o fechamento do parêntese correspondente
-                j = i + 1
-                count = 1
+                # CASO 1: INÍCIO DE SUB-EXPRESSÃO
+                # Quando encontramos um parêntese de abertura, precisamos localizar
+                # o parêntese de fechamento correspondente e processar o conteúdo entre eles
                 
+                # Contador para controlar o aninhamento de parênteses
+                j = i + 1
+                count = 1  # Começamos com 1 parêntese aberto
+                
+                # Busca o parêntese de fechamento correspondente
                 while j < len(tokens) and count > 0:
                     if tokens[j] == '(':
-                        count += 1
+                        count += 1  # Encontrou outro parêntese de abertura, incrementa o contador
                     elif tokens[j] == ')':
-                        count -= 1
+                        count -= 1  # Encontrou um parêntese de fechamento, decrementa o contador
                     j += 1
                 
+                # Verifica se os parênteses estão balanceados
                 if count != 0:
                     raise ValueError("Erro: Parênteses não balanceados.")
                 
-                # Avalia a sub-expressão recursivamente
+                # Extrai a sub-expressão entre os parênteses (excluindo os parênteses)
                 subexpr = tokens[i+1:j-1]
                 
-                # Verifica comandos especiais
+                # PROCESSAMENTO DE COMANDOS ESPECIAIS E SUB-EXPRESSÕES
+                
                 if len(subexpr) == 2 and subexpr[1] == 'RES':
-                    # Comando (N RES)
+                    # CASO 1.1: COMANDO (N RES)
+                    # Recupera o resultado de N linhas anteriores
                     n = int(subexpr[0])
                     if n < len(self.results):
+                        # Acessa o resultado N posições para trás no histórico (-1 para índice 0)
                         stack.append(self.results[-(n+1)])
                     else:
                         raise ValueError(f"Erro: Não há {n} resultados anteriores.")
                 elif len(subexpr) == 2 and subexpr[1] == 'MEM':
-                    # Comando (V MEM)
+                    # CASO 1.2: COMANDO (V MEM)
+                    # Armazena um valor na memória
                     value = float(subexpr[0])
+                    # Converte para meia precisão antes de armazenar
                     self.memory = self.to_half_precision(value)
+                    # Empilha o valor armazenado para continuar o cálculo
                     stack.append(self.memory)
                 elif len(subexpr) == 1 and subexpr[0] == 'MEM':
-                    # Comando (MEM)
+                    # CASO 1.3: COMANDO (MEM)
+                    # Recupera o valor armazenado na memória
                     stack.append(self.memory)
                 else:
-                    # Expressão normal
+                    # CASO 1.4: SUB-EXPRESSÃO NORMAL
+                    # Avalia recursivamente a sub-expressão e empilha o resultado
                     result = self.evaluate_tokens(subexpr)
                     stack.append(result)
                 
+                # Avança o índice para depois do parêntese de fechamento
                 i = j
             elif token == ')':
-                # Já tratado no bloco anterior
+                # CASO 2: FIM DE SUB-EXPRESSÃO
+                # Parênteses de fechamento são tratados implicitamente no 'CASO 1'
                 i += 1
             elif token in ['+', '-', '*', '|', '/', '%', '^']:
-                # Operadores
+                # CASO 3: OPERADORES
+                # Todos os operadores requerem exatamente dois operandos
                 if len(stack) < 2:
                     raise ValueError(f"Erro: Operador {token} requer dois operandos.")
                 
-                b = stack.pop()
-                a = stack.pop()
+                # Remove os dois operandos do topo da pilha (ordem é importante!)
+                b = stack.pop()  # Segundo operando (topo da pilha)
+                a = stack.pop()  # Primeiro operando (abaixo do topo)
                 
-                # Opera com os dois operandos
+                # Aplica o operador aos operandos e empilha o resultado
                 result = self.operate(a, b, token)
                 stack.append(result)
                 i += 1
             else:
-                # Números
+                # CASO 4: OPERANDOS (NÚMEROS)
+                # Tenta converter o token para um número de ponto flutuante
                 try:
                     num = float(token)
+                    # Converte para meia precisão antes de empilhar
                     stack.append(self.to_half_precision(num))
                 except ValueError:
+                    # Se não for possível converter para float, o token é inválido
                     raise ValueError(f"Token inválido: {token}")
                 i += 1
         
+        # VALIDAÇÃO FINAL
+        # Ao final da avaliação, a pilha deve conter exatamente um valor (o resultado final)
         if len(stack) != 1:
             raise ValueError("Erro: Expressão inválida ou incompleta.")
         
+        # Retorna o único valor na pilha, que é o resultado da expressão
         return stack[0]
     
     def tokenize_expression(self, expression):

@@ -1,0 +1,54 @@
+# Arquivos compilados do Arduino
+*.o
+*.hex
+*.elf
+*.eep
+*.bin
+*.map
+*.lst
+
+# Arquivos de backup e temporários
+*~
+*.bak
+*.tmp
+*.swp
+.DS_Store
+
+# Arquivos de compilação Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Arquivos de compilação C++
+*.out
+*.app
+*.exe
+*.dll
+*.dylib
+*.a
+*.lib
+
+# Arquivos específicos do projeto
+arduino_code.o
+arduino_code.hex
+arduino_test.o
+arduino_test.hex
+arduino_led_test.o
+arduino_led_test.hex

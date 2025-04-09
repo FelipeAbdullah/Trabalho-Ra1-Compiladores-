@@ -11,6 +11,7 @@ Este projeto implementa uma calculadora que avalia expressões aritméticas escr
 - [Comandos Especiais](#comandos-especiais)
 - [Exemplos Práticos](#exemplos-práticos)
 - [Geração de Código Assembly](#geração-de-código-assembly)
+- [Configuração do Arduino para Testes](#configuração-do-arduino-para-testes)
 
 ## Descrição do Projeto
 
@@ -214,6 +215,63 @@ expression_1:
 end:
     rjmp end    ; Loop infinito
 ```
+
+## Configuração do Arduino para Testes
+
+Para testar o código Assembly gerado pela calculadora RPN no Arduino, você precisará seguir estas etapas:
+
+### Requisitos de Hardware
+
+- Arduino Uno ou compatível
+- Cabo USB para conectar o Arduino ao computador
+- (Opcional) LED externo, resistor de 220Ω e jumpers
+
+### Preparação do Arduino
+
+1. **Conexão básica**:
+   - Conecte o Arduino ao computador via cabo USB
+   - Verifique se o LED embutido (pino 13) está funcionando
+
+2. **Configuração para testes avançados (opcional)**:
+   ```
+   +5V --- LED --- Resistor 220Ω --- Pino Digital (ex: 8)
+   ```
+
+### Compilação e Carregamento do Código
+
+1. **Instale as ferramentas AVR**:
+   ```bash
+   # Para Ubuntu/Debian
+   sudo apt-get install gcc-avr binutils-avr avr-libc avrdude
+   ```
+
+2. **Utilize o script de compilação**:
+   ```bash
+   ./compile_arduino.sh
+   ```
+   
+   Ou para especificar um arquivo específico:
+   ```bash
+   ./compile_arduino.sh arquivo.asm
+   ```
+
+### Verificação da Execução
+
+O código `arduino_led_test.asm` inclui rotinas de teste que usam o LED embutido para indicar se as operações foram executadas corretamente:
+
+1. **Inicialização**: O LED piscará 2 vezes lentamente
+2. **Testes por Operação**: Para cada operação bem-sucedida, o LED piscará 1 vez
+3. **Resultado Final**:
+   - **Sucesso**: 5 piscadas rápidas
+   - **Falha**: LED constantemente aceso
+
+### Depuração
+
+Se você precisar depurar o código:
+
+1. Modifique `arduino_test.asm` para incluir mais pontos de verificação
+2. Use o monitor serial com baud rate 9600 para visualizar mensagens
+3. Para operações mais complexas, considere usar um display LCD ou múltiplos LEDs
 
 ---
 

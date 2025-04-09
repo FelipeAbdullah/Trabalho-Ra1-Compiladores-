@@ -1,92 +1,67 @@
 ; Código Assembly gerado para Arduino UNO
 ; Este código implementa as expressões RPN do arquivo de entrada
 
-.include "m328pdef.inc"
+; Definições
+.equ RAMEND, 0x08FF
 
 ; Inicialização
-setup:
-    ; Configuração inicial do Arduino
-    ; Seria implementado o código para inicializar registradores, etc.
+.global main
+.section .text
+
+; Inicialização
+reset:
+    ; Configurar pilha
+    ldi r16, lo8(RAMEND)
+    out SPL, r16
+    ldi r16, hi8(RAMEND)
+    out SPH, r16
 
 ; Memória para comando (MEM)
-    .dseg
-memory: .byte 2    ; 2 bytes para half-precision float
-results: .byte 20   ; Espaço para armazenar 10 resultados (2 bytes cada)
-    .cseg
+.section .data
+memory: .space 2    ; 2 bytes para half-precision float
+results: .space 20   ; Espaço para armazenar 10 resultados (2 bytes cada)
 
+.section .text
 main:
     ; Código principal
     ; Expressão da linha 1: (5 3 +)
 expression_1:
     ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
+    ldi r16, 5     ; Carrega primeiro operando
+    ldi r17, 3     ; Carrega segundo operando
+    add r16, r17   ; Soma
+    sts memory, r16 ; Armazena resultado
+    
     ; Expressão da linha 2: (10 2 -)
 expression_2:
     ; Operação de subtração
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    sub r16, r17  ; Subtrai
-    st X+, r16    ; Armazena resultado
+    ldi r16, 10    ; Carrega primeiro operando
+    ldi r17, 2     ; Carrega segundo operando
+    sub r16, r17   ; Subtrai
+    sts memory+1, r16 ; Armazena resultado
+    
     ; Expressão da linha 3: (4 3 *)
 expression_3:
     ; Operação de multiplicação
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    mul r16, r17  ; Multiplica
-    movw r16, r0  ; Move resultado para r16:r17
-    st X+, r16    ; Armazena resultado
-    ; Expressão da linha 4: (8 2 |)
+    ldi r16, 4     ; Carrega primeiro operando
+    ldi r17, 3     ; Carrega segundo operando
+    mul r16, r17   ; Multiplica
+    sts memory+2, r0 ; Armazena resultado (parte baixa)
+    
+    ; Expressão da linha 4: (8 2 /)
 expression_4:
-    ; Expressão da linha 5: (9 2 /)
-expression_5:
-    ; Expressão da linha 6: (10 3 %)
-expression_6:
-    ; Expressão da linha 7: (2 3 ^)
-expression_7:
-    ; Expressão da linha 8: (5.5 2.5 +)
-expression_8:
-    ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
-    ; Expressão da linha 9: (3 (2 4 +) *)
-expression_9:
-    ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
-    ; Expressão da linha 10: ((5 2 -) (3 1 +) *)
-expression_10:
-    ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
-    ; Expressão da linha 11: (10 MEM)
-expression_11:
-    ; Expressão da linha 12: (MEM)
-expression_12:
-    ; Expressão da linha 13: (2 RES)
-expression_13:
-    ; Expressão da linha 14: ((1 RES) (MEM) +)
-expression_14:
-    ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
-    ; Expressão da linha 15: (7 (3 2 *) (1 5 +) + +)
-expression_15:
-    ; Operação de adição
-    ld r16, X+    ; Carrega primeiro operando
-    ld r17, X+    ; Carrega segundo operando
-    add r16, r17  ; Soma
-    st X+, r16    ; Armazena resultado
+    ; Operação de divisão (simplificada)
+    ldi r16, 8     ; Carrega primeiro operando
+    ldi r17, 2     ; Carrega segundo operando
+    ldi r18, 0     ; Inicializa resultado
+div_loop:
+    cp r16, r17    ; Compara r16 com r17
+    brlt div_end   ; Se r16 < r17, termina
+    sub r16, r17   ; r16 = r16 - r17
+    inc r18        ; Incrementa o resultado
+    rjmp div_loop  ; Continua divisão
+div_end:
+    sts memory+3, r18 ; Armazena resultado
 
 end:
     rjmp end    ; Loop infinito
